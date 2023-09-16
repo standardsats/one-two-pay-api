@@ -1,7 +1,9 @@
 use crate::error::ApiError;
 
 use super::bank::*;
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
 #[derive(Debug, Clone)]
 pub struct TransferReq {
@@ -87,50 +89,66 @@ impl From<TransferReq> for TransferReqInner {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct TransferRes {
     pub payout_ref: String,
     pub transaction_id: String,
-    pub transaction_date_time: String,
-    pub qstring: String,
+    pub transaction_date_time: NaiveDateTime,
+    pub qrstring: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
-#[serde(untagged)]
-pub enum TransferResInner {
-    Success {
-        status: i32,
-        message: String,
-        payout_ref: String,
-        transaction_id: String,
-        #[serde(rename = "transactionDate_time")]
-        transaction_date_time: String,
-        qstring: String,
-    },
-    Failure {
-        status: i32,
-        message: String,
-    },
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+pub struct TransferResInner {
+    status: i32,
+    message: String,
+    payout_ref: Option<String>,
+    transaction_id: Option<String>,
+    #[serde(rename = "transactionDate_time")]
+    transaction_date_time: Option<String>,
+    qrstring: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Error)]
+pub enum TransferConvError {
+    #[error("API returned failed code: {0}")]
+    Api(ApiError),
+    #[error("Cannot parse timestamp: {0}. Error: {1}")]
+    TimestampParse(String, String),
+    #[error("The field that must be in response in success: {0}")]
+    SuccessNones(String),
 }
 
 impl TryFrom<TransferResInner> for TransferRes {
-    type Error = ApiError;
+    type Error = TransferConvError;
 
     fn try_from(value: TransferResInner) -> Result<Self, Self::Error> {
-        match value {
-            TransferResInner::Success {
-                payout_ref,
-                transaction_id,
-                transaction_date_time,
-                qstring,
-                ..
-            } => Ok(TransferRes {
-                payout_ref,
-                transaction_id,
-                transaction_date_time,
-                qstring,
-            }),
-            TransferResInner::Failure { status, .. } => Err(ApiError::from_code(status)),
+        let code = ApiError::from_code(value.status);
+
+        if code.is_success() {
+            let date_time_str =
+                value
+                    .transaction_date_time
+                    .ok_or(TransferConvError::SuccessNones(
+                        "transactionDate_time".to_owned(),
+                    ))?;
+            Ok(TransferRes {
+                payout_ref: value
+                    .payout_ref
+                    .ok_or(TransferConvError::SuccessNones("payout_ref".to_owned()))?,
+                transaction_id: value
+                    .transaction_id
+                    .ok_or(TransferConvError::SuccessNones("transaction_id".to_owned()))?,
+                transaction_date_time: NaiveDateTime::parse_from_str(
+                    &date_time_str,
+                    "%Y-%m-%dT%H:%M:%S%.f%z",
+                )
+                .map_err(|e| TransferConvError::TimestampParse(date_time_str, e.to_string()))?,
+                qrstring: value
+                    .qrstring
+                    .ok_or(TransferConvError::SuccessNones("qrstring".to_owned()))?,
+            })
+        } else {
+            Err(TransferConvError::Api(code))
         }
     }
 }
@@ -171,6 +189,53 @@ mod tests {
         assert_eq!(
             example_json,
             serde_json::to_value(&datum_inner).expect("encoded")
+        );
+    }
+
+    #[test]
+    fn transfer_response_success() {
+        let example = "{
+            \"status\": 1000,
+            \"message\": \"Success\",
+            \"payout_ref\": \"2022030288DtbRwK0IKr536t4\",
+            \"transaction_id\": \"2022030288DtbRwK0IKr536t4\",
+            \"transactionDate_time\": \"2022-03-02T20:30:04+07:00\",
+            \"qrstring\": \"00460006022030288DtbRwK0IKr536t45102TH91042337\"
+            }";
+        let datum = TransferRes {
+            payout_ref: "2022030288DtbRwK0IKr536t4".to_owned(),
+            transaction_id: "2022030288DtbRwK0IKr536t4".to_owned(),
+            transaction_date_time: NaiveDateTime::from_timestamp_millis(1646253004000)
+                .expect("timestamp"),
+            qrstring: "00460006022030288DtbRwK0IKr536t45102TH91042337".to_owned(),
+        };
+
+        let example_inner: TransferResInner = serde_json::from_str(&example).expect("parsed");
+        let example_conv: Result<TransferRes, TransferConvError> = example_inner.try_into();
+        assert_eq!(example_conv, Ok(datum));
+    }
+
+    #[test]
+    fn transfer_response_failure() {
+        let example = "{
+            \"status\": 9091,
+            \"message\": \"Request has no response from the bank. Please try again later.\"
+            }";
+        let datum = TransferResInner {
+            status: 9091,
+            message: "Request has no response from the bank. Please try again later.".to_owned(),
+            payout_ref: None, 
+            transaction_id: None, 
+            transaction_date_time: None, 
+            qrstring: None,
+        };
+
+        let example_inner: TransferResInner = serde_json::from_str(&example).expect("parsed");
+        let example_conv: Result<TransferRes, TransferConvError> = example_inner.clone().try_into();
+        assert_eq!(example_inner, datum);
+        assert_eq!(
+            example_conv,
+            Err(TransferConvError::Api(ApiError::from_code(9091)))
         );
     }
 }

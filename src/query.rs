@@ -119,7 +119,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn transfer_request_example() {
+    fn query_response_success() {
         let example = "{
             \"status\": \"1000\",
             \"message\": \"Success\",
@@ -150,6 +150,40 @@ mod tests {
                 NaiveDateTime::from_timestamp_millis(1652776910447).expect("timestamp"),
             ),
             transfer_transaction_id: Some("2022051790WiXyi9Lwu0iuHgT".to_owned()),
+        };
+        let example_inner: QueryResInner = serde_json::from_str(&example).expect("parsed");
+        let example_pretty: QueryRes = example_inner.try_into().expect("converted");
+        assert_eq!(example_pretty, datum);
+    }
+
+    #[test]
+    fn query_response_failure() {
+        let example = "{
+            \"status\": \"5009\",
+            \"message\": \"Incorrect 'Account To' number. Please try again\",
+            \"accname\": \"MANOP DEVELOPER\",
+            \"bankacc\": \"66520784099\",
+            \"bankcode\": \"004\",
+            \"amount\": \"100,001.00\",
+            \"ref1\": \"202205170648\",
+            \"ref2\": \"KASiKORN BANK\",
+            \"ref3\": \"\",
+            \"ref4\": \"\",
+            \"created_date\": \"2022-05-17 06:47:58.860\"
+            }";
+        let datum = QueryRes {
+            status: ApiError::from_code(5009),
+            bankacc: "66520784099".to_owned(),
+            bank: Bank::Kasikorn,
+            accname: "MANOP DEVELOPER".to_owned(),
+            amount: 100001.0,
+            ref1: "202205170648".to_owned(),
+            ref2: Some("KASiKORN BANK".to_owned()),
+            ref3: None,
+            ref4: None,
+            created_date: NaiveDateTime::from_timestamp_millis(1652770078860).expect("timestamp"),
+            transfer_date: None,
+            transfer_transaction_id: None,
         };
         let example_inner: QueryResInner = serde_json::from_str(&example).expect("parsed");
         let example_pretty: QueryRes = example_inner.try_into().expect("converted");
