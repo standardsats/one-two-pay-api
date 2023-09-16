@@ -1,10 +1,17 @@
 use std::fmt::Display;
 use thiserror::Error;
+use std::sync::Arc;
 
-#[derive(Debug, Clone, PartialEq, Error)]
+use crate::transfer::TransferConvError;
+
+#[derive(Debug, Clone, Error)]
 pub enum Error {
     #[error("API error: {0}")]
     Api(ApiError),
+    #[error("Network error: {0}")]
+    Reqwest(Arc<reqwest::Error>),
+    #[error("Payout method conversion: {0}")]
+    ConvertTransfer(TransferConvError),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
