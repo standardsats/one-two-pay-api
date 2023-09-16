@@ -1,13 +1,12 @@
 pub mod bank;
+pub mod error;
 
 pub use bank::*;
+use error::Error;
 
 pub const ONE_TWO_PAY_URL: &str = "https://payout.1-2-pay.com/";
 
 pub struct Client {}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum Error {}
 
 pub struct TransferReq {}
 
