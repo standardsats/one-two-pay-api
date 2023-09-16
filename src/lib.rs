@@ -1,27 +1,21 @@
-pub struct Client {
+pub mod bank;
 
-}
+pub use bank::*;
+
+pub const ONE_TWO_PAY_URL: &str = "https://payout.1-2-pay.com/";
+
+pub struct Client {}
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Error {
+pub enum Error {}
 
-}
+pub struct TransferReq {}
 
-pub struct TransferReq {
+pub struct TransferRes {}
 
-}
+pub struct QueryReq {}
 
-pub struct TransferRes {
-
-}
-
-pub struct QueryReq {
-
-}
-
-pub struct QueryRes {
-
-}
+pub struct QueryRes {}
 
 impl Client {
     pub async fn transfer(client: &Client, args: TransferReq) -> Result<TransferRes, Error> {
@@ -31,9 +25,7 @@ impl Client {
     pub async fn query(client: &Client, args: QueryReq) -> Result<QueryRes, Error> {
         todo!();
     }
-    
 }
-
 
 #[cfg(test)]
 mod tests {
