@@ -1,8 +1,8 @@
 use std::fmt::Display;
-use thiserror::Error;
 use std::sync::Arc;
+use thiserror::Error;
 
-use crate::transfer::TransferConvError;
+use crate::{query::QueryResError, transfer::TransferConvError};
 
 #[derive(Debug, Clone, Error)]
 pub enum Error {
@@ -12,6 +12,10 @@ pub enum Error {
     Reqwest(Arc<reqwest::Error>),
     #[error("Payout method conversion: {0}")]
     ConvertTransfer(TransferConvError),
+    #[error("Query method conversion: {0}")]
+    ConvertQuery(QueryResError),
+    #[error("Header 'type' failed to encode: {0}")]
+    TypeHeaderEncoding(Arc<serde_json::Error>),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]

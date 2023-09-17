@@ -224,9 +224,9 @@ mod tests {
         let datum = TransferResInner {
             status: 9091,
             message: "Request has no response from the bank. Please try again later.".to_owned(),
-            payout_ref: None, 
-            transaction_id: None, 
-            transaction_date_time: None, 
+            payout_ref: None,
+            transaction_id: None,
+            transaction_date_time: None,
             qrstring: None,
         };
 
