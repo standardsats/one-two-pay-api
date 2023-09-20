@@ -9,37 +9,27 @@ pub use bank::*;
 use error::Error;
 use query::QueryResInner;
 pub use query::{QueryReq, QueryRes};
-use serde::Serialize;
 use transfer::TransferResInner;
 pub use transfer::{TransferReq, TransferRes};
 
 use crate::transfer::TransferReqInner;
 
-pub const ONE_TWO_PAY_URL: &str = "https://payout.1-2-pay.com/";
+pub const ONE_TWO_PAY_URL: &str = "https://payout.1-2-pay.com";
 
 #[derive(Debug, Clone)]
 pub struct Client {
     base_url: String,
-    type_header: TypeHeader,
-    api_key: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct TypeHeader {
-    #[serde(rename = "Channel")]
     channel: String,
-    #[serde(rename = "Partnercode")]
     partnercode: String,
+    api_key: String,
 }
 
 impl Client {
     pub fn new(channel: &str, partner_code: &str, api_key: &str) -> Self {
         Client {
             base_url: ONE_TWO_PAY_URL.to_owned(),
-            type_header: TypeHeader {
-                partnercode: partner_code.to_owned(),
-                channel: channel.to_owned(),
-            },
+            partnercode: partner_code.to_owned(),
+            channel: channel.to_owned(),
             api_key: api_key.to_owned(),
         }
     }
@@ -48,16 +38,15 @@ impl Client {
         let client = reqwest::Client::new();
         let body: TransferReqInner = args.into();
         trace!("Body: {:?}", serde_json::to_string(&body));
-        let res: TransferResInner = client
+        let req = client
             .post(format!("{}/payout", self.base_url))
-            .header(
-                "type",
-                serde_json::to_string(&self.type_header)
-                    .map_err(|e| Error::TypeHeaderEncoding(Arc::new(e)))?,
-            )
             .header("Authorization", &self.api_key)
+            .header("Partnercode", &self.partnercode)
+            .header("Channel", &self.channel)
             .json(&body)
-            .send()
+            .build()
+            .map_err(|e| Error::Reqwest(Arc::new(e)))?;
+        let res: TransferResInner = client.execute(req)
             .await
             .map_err(|e| Error::Reqwest(Arc::new(e)))?
             .json()
@@ -73,12 +62,9 @@ impl Client {
         trace!("Body: {:?}", serde_json::to_string(&body));
         let res: QueryResInner = client
             .post(format!("{}/inquery-trans", self.base_url))
-            .header(
-                "type",
-                serde_json::to_string(&self.type_header)
-                    .map_err(|e| Error::TypeHeaderEncoding(Arc::new(e)))?,
-            )
             .header("Authorization", &self.api_key)
+            .header("Partnercode", &self.partnercode)
+            .header("Channel", &self.channel)
             .json(&body)
             .send()
             .await
