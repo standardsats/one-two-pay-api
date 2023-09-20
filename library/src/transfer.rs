@@ -91,10 +91,10 @@ impl From<TransferReq> for TransferReqInner {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct TransferRes {
-    pub payout_ref: String,
+    pub payout_ref: Option<String>,
     pub transaction_id: String,
     pub transaction_date_time: NaiveDateTime,
-    pub qrstring: String,
+    pub qrstring: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
@@ -132,20 +132,16 @@ impl TryFrom<TransferResInner> for TransferRes {
                         "transactionDate_time".to_owned(),
                     ))?;
             Ok(TransferRes {
-                payout_ref: value
-                    .payout_ref
-                    .ok_or(TransferConvError::SuccessNones("payout_ref".to_owned()))?,
+                payout_ref: value.payout_ref,
                 transaction_id: value
                     .transaction_id
                     .ok_or(TransferConvError::SuccessNones("transaction_id".to_owned()))?,
                 transaction_date_time: NaiveDateTime::parse_from_str(
                     &date_time_str,
-                    "%Y-%m-%dT%H:%M:%S%.f%z",
+                    "%Y-%m-%dT%H:%M:%S",
                 )
                 .map_err(|e| TransferConvError::TimestampParse(date_time_str, e.to_string()))?,
-                qrstring: value
-                    .qrstring
-                    .ok_or(TransferConvError::SuccessNones("qrstring".to_owned()))?,
+                qrstring: value.qrstring,
             })
         } else {
             Err(TransferConvError::Api(code))
@@ -191,7 +187,7 @@ mod tests {
             serde_json::to_value(&datum_inner).expect("encoded")
         );
     }
-
+    
     #[test]
     fn transfer_response_success() {
         let example = "{
@@ -199,15 +195,15 @@ mod tests {
             \"message\": \"Success\",
             \"payout_ref\": \"2022030288DtbRwK0IKr536t4\",
             \"transaction_id\": \"2022030288DtbRwK0IKr536t4\",
-            \"transactionDate_time\": \"2022-03-02T20:30:04+07:00\",
+            \"transactionDate_time\": \"2023-09-20T17:35:13\",
             \"qrstring\": \"00460006022030288DtbRwK0IKr536t45102TH91042337\"
             }";
         let datum = TransferRes {
-            payout_ref: "2022030288DtbRwK0IKr536t4".to_owned(),
+            payout_ref: Some("2022030288DtbRwK0IKr536t4".to_owned()),
             transaction_id: "2022030288DtbRwK0IKr536t4".to_owned(),
-            transaction_date_time: NaiveDateTime::from_timestamp_millis(1646253004000)
+            transaction_date_time: NaiveDateTime::from_timestamp_millis(1695231313000)
                 .expect("timestamp"),
-            qrstring: "00460006022030288DtbRwK0IKr536t45102TH91042337".to_owned(),
+            qrstring: Some("00460006022030288DtbRwK0IKr536t45102TH91042337".to_owned()),
         };
 
         let example_inner: TransferResInner = serde_json::from_str(&example).expect("parsed");

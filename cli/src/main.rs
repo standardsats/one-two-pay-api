@@ -39,7 +39,7 @@ enum Commands {
         /// Reference by which system was made the transaction
         #[arg(long)]
         transaction_by: String,
-        /// External ID of transaction
+        /// External ID of transaction. Must have length => 1 and <= 30. 
         #[arg(long)]
         ref1: String,
         /// Additional data

@@ -1,12 +1,12 @@
 RUST_LOG=trace cargo run -- \
-    --api-key "***REMOVED***" \
+    --api-key "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXJ0bmVyX2NvZGUiOiJDUlMiLCJ1dWlkIjoiMjNhMzI1YWEtMGZkOC00MTcwLTlhNTktOTg3YTMyNzQyYWZjIn0.AiNS7XABAiDU4Somtq4KaofhOc7-Z3WbPVYsVeuMRgo" \
     --partner-code "CRS" \
     --channel "WEB" \
     transfer \
-    --bankacc "0652078409" \
-    --bank kasikorn \
-    --accname "Manop Tangngam" \
-    --mobileno 0805933181 \
+    --bankacc "6572277888" \
+    --bank siam-commercial \
+    --accname "Anton Gushcha" \
+    --mobileno 0655793938 \
     --transaction-by "Test developer" \
-    --ref1 "123456789" \
-    --amount=100.5
+    --ref1 "6957f82b34aa4e1dab67466fe74804" \
+    --amount=10

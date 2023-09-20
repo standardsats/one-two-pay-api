@@ -35,6 +35,10 @@ impl Client {
     }
 
     pub async fn transfer(&self, args: TransferReq) -> Result<TransferRes, Error> {
+        let ref1len = args.ref1.len();
+        if ref1len < 1 || ref1len > 30 {
+            return Err(Error::RefLength(args.ref1));
+        }
         let client = reqwest::Client::new();
         let body: TransferReqInner = args.into();
         trace!("Body: {:?}", serde_json::to_string(&body));

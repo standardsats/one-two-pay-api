@@ -28,7 +28,7 @@ pub struct QueryRes {
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 pub struct QueryResInner {
-    status: i32,
+    status: String,
     message: String,
     accname: Option<String>,
     bankacc: Option<String>,
@@ -58,13 +58,19 @@ pub enum QueryResError {
     AmountIsNotFloat(String),
     #[error("Failed to parse timestamp: {0}. Error: {1}")]
     TimestampParse(String, String),
+    #[error("Failed to parse status as int: {0}")]
+    StatusIsNotInt(String),
 }
 
 impl TryFrom<QueryResInner> for QueryRes {
     type Error = QueryResError;
 
     fn try_from(value: QueryResInner) -> Result<Self, Self::Error> {
-        let status = ApiError::from_code(value.status);
+        let istatus = value
+            .status
+            .parse()
+            .map_err(|_| QueryResError::StatusIsNotInt(value.status))?;
+        let status = ApiError::from_code(istatus);
         if !status.is_success() {
             return Err(QueryResError::ApiError(status));
         }
@@ -126,7 +132,7 @@ mod tests {
     #[test]
     fn query_response_success() {
         let example = "{
-            \"status\": 1000,
+            \"status\": \"1000\",
             \"message\": \"Success\",
             \"accname\": \"MANOP DEVELOPER\",
             \"bankacc\": \"6652078409\",

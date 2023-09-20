@@ -16,6 +16,8 @@ pub enum Error {
     ConvertQuery(QueryResError),
     #[error("Header 'type' failed to encode: {0}")]
     TypeHeaderEncoding(Arc<serde_json::Error>),
+    #[error("ref1 {0} field must have length >= 1 and <= 30")]
+    RefLength(String),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -53,6 +55,7 @@ impl Display for ApiError {
             -1004 => write!(f, "Invalid payout config"),
             -1009 => write!(f, "Balance is not enough"),
             9091 => write!(f, "Request has no response from the bank. Please try again later."),
+            9090 => write!(f, "No response data from the bank. Please wait for us to query and update shortly"),
             c => write!(f, "Unknown error with code {c}"), 
         }
     }
