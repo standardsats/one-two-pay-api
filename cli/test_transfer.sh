@@ -1,12 +1,12 @@
 RUST_LOG=trace cargo run -- \
-    --api-key "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXJ0bmVyX2NvZGUiOiJDUlMiLCJ1dWlkIjoiMjNhMzI1YWEtMGZkOC00MTcwLTlhNTktOTg3YTMyNzQyYWZjIn0.AiNS7XABAiDU4Somtq4KaofhOc7-Z3WbPVYsVeuMRgo" \
-    --partner-code "CRS" \
+    --api-key "$API_KEY" \
+    --partner-code "$PARTNER_CODE" \
     --channel "WEB" \
     transfer \
-    --bankacc "6572277888" \
+    --bankacc "$BANK_ACC" \
     --bank siam-commercial \
-    --accname "Anton Gushcha" \
-    --mobileno 0655793938 \
+    --accname "$BANK_NAME" \
+    --mobileno $MOBILE_NUM \
     --transaction-by "Test developer" \
     --ref1 "6957f82b34aa4e1dab67466fe74804" \
     --amount=10
