@@ -3,12 +3,12 @@ pub mod error;
 pub mod query;
 pub mod transfer;
 
-use std::sync::Arc;
-use log::*;
 pub use bank::*;
 use error::Error;
+use log::*;
 use query::QueryResInner;
 pub use query::{QueryReq, QueryRes};
+use std::sync::Arc;
 use transfer::TransferResInner;
 pub use transfer::{TransferReq, TransferRes};
 
@@ -50,7 +50,8 @@ impl Client {
             .json(&body)
             .build()
             .map_err(|e| Error::Reqwest(Arc::new(e)))?;
-        let res: TransferResInner = client.execute(req)
+        let res: TransferResInner = client
+            .execute(req)
             .await
             .map_err(|e| Error::Reqwest(Arc::new(e)))?
             .json()

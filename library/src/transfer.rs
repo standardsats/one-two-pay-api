@@ -187,7 +187,7 @@ mod tests {
             serde_json::to_value(&datum_inner).expect("encoded")
         );
     }
-    
+
     #[test]
     fn transfer_response_success() {
         let example = "{

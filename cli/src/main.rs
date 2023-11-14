@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use one_two_pay_api::{Bank, Client, TransferReq, QueryReq};
+use one_two_pay_api::{Bank, Client, QueryReq, TransferReq};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -39,7 +39,7 @@ enum Commands {
         /// Reference by which system was made the transaction
         #[arg(long)]
         transaction_by: String,
-        /// External ID of transaction. Must have length => 1 and <= 30. 
+        /// External ID of transaction. Must have length => 1 and <= 30.
         #[arg(long)]
         ref1: String,
         /// Additional data
@@ -62,8 +62,8 @@ enum Commands {
     Inquery {
         /// ID of transaction
         #[arg(short, long)]
-        ref1: String, 
-    }
+        ref1: String,
+    },
 }
 
 #[tokio::main]
@@ -106,11 +106,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("{:?}", res);
         }
         Commands::Inquery { ref1 } => {
-            let res = client
-            .query(QueryReq {
-                ref1,
-            })
-            .await?;
+            let res = client.query(QueryReq { ref1 }).await?;
             println!("{:?}", res);
         }
     }
